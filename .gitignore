@@ -1,0 +1,7 @@
+*.pyc
+**/~$*.xlsx
+__pycache__/
+.vscode/
+docs
+data/3mm复合材料和铝合金焊接数据*
+logs

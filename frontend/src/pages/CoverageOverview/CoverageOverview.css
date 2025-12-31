@@ -1,0 +1,35 @@
+.coverage-overview {
+  padding: 24px;
+}
+
+.stat-card {
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.info-card {
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.status-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px;
+}
+
+.status-icon {
+  font-size: 32px;
+  margin-top: 4px;
+}
+
+.status-msg.success .status-icon {
+  color: #52c41a;
+}
+
+.status-msg.warning .status-icon {
+  color: #faad14;
+}

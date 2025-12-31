@@ -1,0 +1,43 @@
+/**
+ * 数据编辑弹窗样式
+ */
+
+.data-edit-modal .ant-modal-body {
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.data-edit-form {
+  margin-top: 16px;
+}
+
+.field-category {
+  margin-bottom: 16px;
+}
+
+.field-category .ant-divider {
+  margin: 16px 0;
+  font-weight: 600;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.field-grid .ant-form-item {
+  margin-bottom: 0;
+}
+
+/* 单列显示小屏幕 */
+@media (max-width: 768px) {
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-edit-modal .ant-modal {
+    max-width: calc(100vw - 32px);
+  }
+}

@@ -1,0 +1,152 @@
+/**
+ * 主布局样式
+ */
+
+.main-layout {
+  min-height: 100vh;
+}
+
+/* ==================== 侧边栏样式 ==================== */
+
+.sidebar {
+  background: #001529 !important;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  border-right: none;
+}
+
+.logo-area {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: #001529; /* 保持与侧边栏一致 */
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-icon {
+  font-size: 24px;
+  color: #1890ff;
+  margin-right: 12px;
+}
+
+.logo-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 1px;
+}
+
+.nav-menu {
+  flex: 1;
+  border-right: none !important;
+  padding-top: 16px;
+  background: transparent !important;
+}
+
+.nav-menu .ant-menu-item {
+  height: 48px;
+  line-height: 48px;
+  margin: 4px 12px !important;
+  border-radius: 8px !important;
+  width: calc(100% - 24px) !important;
+}
+
+.nav-menu .ant-menu-item-selected {
+  background: #1890ff !important;
+  color: #fff !important;
+}
+
+.nav-menu .ant-menu-item:hover {
+  color: #fff !important;
+}
+
+.nav-menu .ant-menu-item-active {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 修复分组标题颜色 */
+.nav-menu .ant-menu-item-group-title {
+  color: rgba(255, 255, 255, 0.45) !important;
+  padding-left: 24px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.import-btn-area {
+  padding: 20px;
+  margin-top: auto;
+}
+
+.btn-import-csv {
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  color: #fff;
+  transition: all 0.3s;
+}
+
+.btn-import-csv:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+}
+
+/* ==================== 主内容区样式 ==================== */
+
+.main-content-wrapper {
+  background: #f0f2f5;
+}
+
+.header {
+  height: 64px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  flex: 1;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.content-body {
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 100;
+    height: 100vh;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .content-body {
+    padding: 16px;
+  }
+}

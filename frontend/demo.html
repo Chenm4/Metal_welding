@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>材料焊接全流程数据库系统 - 界面原型</title>
+    <style>
+        :root {
+            --primary-color: #1890ff;
+            --success-color: #52c41a;
+            --warning-color: #faad14;
+            --danger-color: #ff4d4f;
+            --text-main: #333;
+            --text-sub: #666;
+            --bg-color: #f0f2f5;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #e6e9ed;
+            margin: 0;
+            padding: 40px;
+            color: var(--text-main);
+        }
+
+        h2.view-title {
+            margin-top: 60px;
+            margin-bottom: 20px;
+            color: #444;
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+        }
+        h2.view-title:first-child { margin-top: 0; }
+
+        /* 通用容器样式 */
+        .app-container {
+            width: 1200px;
+            height: 700px; /* 固定高度模拟屏幕 */
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            position: relative; /* For Modals */
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-area {
+            height: 64px;
+            line-height: 64px;
+            background: #002140;
+            padding-left: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+        .logo-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .nav-item {
+            padding: 15px 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            color: rgba(255,255,255,0.65);
+        }
+        .nav-item:hover { color: #fff; }
+        .nav-item.active {
+            background: #1890ff;
+            color: #fff;
+        }
+        .nav-item-icon { margin-right: 10px; }
+        .import-btn-area {
+            margin-top: auto;
+            padding: 20px;
+        }
+        .btn-import-csv {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px dashed rgba(255,255,255,0.4);
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-color);
+        }
+
+        /* 顶部 Header */
+        .header {
+            height: 64px;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,21,41,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+        .breadcrumb { color: var(--text-sub); }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 32px; height: 32px; background: #ddd; border-radius: 50%; }
+
+        /* 内容面板 */
+        .content-body {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 4px;
+        }
+
+        /* 筛选区 */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+        }
+        .checkbox-group label {
+            margin-right: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-group input { margin-right: 5px; }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 6px 15px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .btn-primary { background: var(--primary-color); color: #fff; }
+        .btn-danger { background: #fff; border: 1px solid var(--danger-color); color: var(--danger-color); }
+        .btn-link { background: none; color: var(--primary-color); padding: 0 5px; }
+        .btn-link-danger { background: none; color: var(--danger-color); padding: 0 5px; }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        th { background: #fafafa; font-weight: 600; }
+        tr:hover td { background: #e6f7ff; }
+
+        /* ---------------- 图 B: 弹窗样式 ---------------- */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-window {
+            width: 500px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            text-align: right;
+            background: #fafafa;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .input-box, .select-box {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .radio-group label { display: block; margin-bottom: 8px; cursor: pointer; }
+        
+        /* ---------------- 图 C: 表单样式 ---------------- */
+        .edit-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .fieldset {
+            border: 1px solid #e8e8e8;
+            padding: 15px;
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .fieldset-title {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #fff;
+            padding: 0 5px;
+            color: var(--primary-color);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* ---------------- 图 D: 用户视图差异 ---------------- */
+        .user-view .action-col { display: none; }
+        .user-view .admin-controls { display: none; }
+    </style>
+</head>
+<body>
+
+    <h2 class="view-title">图 A：管理员主界面 (数据管理)</h2>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo-area"><span class="logo-icon"></span>焊接数据库系统</div>
+            <ul class="nav-menu">
+                <li class="nav-item active"><span class="nav-item-icon">📂</span>625试验数据</li>
+                <li class="nav-item"><span class="nav-item-icon">📂</span>701补充实验</li>
+                <li class="nav-item"><span class="nav-item-icon">📂</span>文献提取数据</li>
+                <li class="nav-item"><span class="nav-item-icon">📂</span>频谱分析数据</li>
+            </ul>
+            <div class="import-btn-area">
+                <div class="btn-import-csv">⬆ 导入CSV文件</div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="header">
+                <div class="breadcrumb">首页 / 数据管理 / 625试验数据</div>
+                <div class="user-info">
+                    <span>Admin</span>
+                    <div class="avatar"></div>
+                    <a href="#" style="color: #999; text-decoration: none; font-size: 12px;">[退出]</a>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="card">
+                    <div class="filter-bar">
+                        <div class="checkbox-group">
+                            <span style="margin-right:10px; font-weight:bold; color:#666;">特征筛选:</span>
+                            <label><input type="checkbox" checked> <span style="color:#1890ff">●</span> 物性参数</label>
+                            <label><input type="checkbox" checked> <span style="color:#52c41a">●</span> 工艺参数</label>
+                            <label><input type="checkbox"> 状态参数</label>
+                            <label><input type="checkbox"> 性能指标</label>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary">+ 新增数据</button>
+                            <button class="btn btn-danger" style="margin-left: 10px;">🗑 批量删除</button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px; color: #666; font-size: 12px; text-align: right;">📊 当前数据集完整度: 92.5%</div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox"></th>
+                                <th>ID</th>
+                                <th>物性_基材成分</th>
+                                <th>物性_厚度</th>
+                                <th>工艺_激光功率</th>
+                                <th>工艺_焊接速度</th>
+                                <th style="text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>01</td>
+                                <td>Al-SiC</td>
+                                <td>5.0 mm</td>
+                                <td>1600 W</td>
+                                <td>1.8 m/s</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-link">修改</button>
+                                    <button class="btn-link-danger">删</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>02</td>
+                                <td>Al-Mg</td>
+                                <td>4.5 mm</td>
+                                <td>2000 W</td>
+                                <td>2.0 m/s</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-link">修改</button>
+                                    <button class="btn-link-danger">删</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>03</td>
+                                <td>Al-SiC</td>
+                                <td>5.0 mm</td>
+                                <td>1800 W</td>
+                                <td>1.5 m/s</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-link">修改</button>
+                                    <button class="btn-link-danger">删</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>04</td>
+                                <td>Al-Cu</td>
+                                <td>6.0 mm</td>
+                                <td>2200 W</td>
+                                <td>2.2 m/s</td>
+                                <td style="text-align: center;">
+                                    <button class="btn-link">修改</button>
+                                    <button class="btn-link-danger">删</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; text-align: right; color: #999;">
+                        &lt; 上一页 1 2 3 4 5 下一页 &gt;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="view-title">图 B：数据导入向导 (弹窗演示)</h2>
+    <div class="app-container" style="justify-content: center; align-items: center; background: #ddd;">
+        <div style="position: absolute; width:100%; height:100%; filter: blur(4px); background: url('data:image/svg+xml;base64,...') #f0f2f5; z-index: 1;">
+            <div class="sidebar" style="height:100%; position:absolute;"></div>
+        </div>
+
+        <div class="modal-overlay">
+            <div class="modal-window">
+                <div class="modal-header">
+                    <span>📥 数据导入向导</span>
+                    <span style="cursor:pointer; color:#999;">✕</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">1. 选择文件</label>
+                        <div style="border: 1px solid #d9d9d9; padding: 10px; border-radius: 4px; display: flex; align-items: center; background: #fafafa;">
+                            <span style="font-size: 24px; margin-right: 10px;">📄</span>
+                            <div style="flex:1">
+                                <div style="font-weight: 500;">2025_new_experiment_data.csv</div>
+                                <div style="font-size: 12px; color: #999;">324 KB</div>
+                            </div>
+                            <button class="btn" style="border:1px solid #d9d9d9;">浏览...</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">2. 导入目标</label>
+                        <div class="radio-group" style="margin-left: 10px;">
+                            <label>
+                                <input type="radio" name="target" checked> 
+                                <strong>新建数据集 (New Table)</strong>
+                                <input type="text" value="新批次_焊接实验" class="input-box" style="margin-top:5px; width: 90%;">
+                            </label>
+                            <label style="margin-top: 15px;">
+                                <input type="radio" name="target"> 
+                                <strong>追加到现有数据集 (Append)</strong>
+                                <select class="select-box" style="margin-top:5px; width: 90%; background: #f5f5f5;" disabled>
+                                    <option>625试验数据</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background: #e6f7ff; padding: 10px; border: 1px solid #91d5ff; border-radius: 4px;">
+                        <label class="form-label" style="color: #1890ff; margin-bottom: 0;">ℹ️ 预览分析:</label>
+                        <div style="font-size: 13px; color: #666; margin-top: 5px;">
+                            系统检测到CSV头包含字段前缀：<br>
+                            <b>物性(5)</b>, <b>工艺(3)</b>, <b>状态(2)</b>, <b>性能(4)</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" style="margin-right: 10px; border: 1px solid #d9d9d9; background: #fff;">取消</button>
+                    <button class="btn btn-primary">✅ 确认导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="view-title">图 C：详细数据编辑表单</h2>
+    <div class="app-container" style="justify-content: center; align-items: center; background: #f0f2f5;">
+        <div class="modal-overlay" style="background: none; position: relative; width: 100%; height: 100%;">
+            <div class="modal-window" style="width: 700px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <div class="modal-header">
+                    <span>📝 编辑数据行 (ID: 01)</span>
+                    <span style="cursor:pointer; color:#999;">✕</span>
+                </div>
+                <div class="modal-body">
+                    
+                    <div class="edit-form-grid">
+                        <div class="fieldset">
+                            <span class="fieldset-title">🧱 物性参数 (Physical)</span>
+                            <div class="form-group">
+                                <label class="form-label">物性_基材成分</label>
+                                <input type="text" class="input-box" value="Al-SiC">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">物性_厚度 (mm)</label>
+                                <input type="number" class="input-box" value="5.0">
+                            </div>
+                        </div>
+
+                        <div class="fieldset">
+                            <span class="fieldset-title">⚙️ 工艺参数 (Process)</span>
+                            <div class="form-group">
+                                <label class="form-label">工艺_激光功率 (W)</label>
+                                <input type="number" class="input-box" value="1600">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">工艺_焊接速度 (m/s)</label>
+                                <input type="number" class="input-box" value="1.8">
+                            </div>
+                        </div>
+
+                        <div class="fieldset">
+                            <span class="fieldset-title">🌡️ 状态参数 (State)</span>
+                            <div class="form-group">
+                                <label class="form-label">状态_熔池温度 (°C)</label>
+                                <input type="number" class="input-box" value="600">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">状态_光强信号</label>
+                                <input type="number" class="input-box" value="0.85">
+                            </div>
+                        </div>
+
+                        <div class="fieldset">
+                            <span class="fieldset-title">📈 性能指标 (Performance)</span>
+                            <div class="form-group">
+                                <label class="form-label">性能_抗拉强度 (MPa)</label>
+                                <input type="number" class="input-box" value="525">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">性能_延伸率 (%)</label>
+                                <input type="number" class="input-box" value="15.0">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" style="margin-right: 10px; border: 1px solid #d9d9d9; background: #fff;">取消</button>
+                    <button class="btn btn-primary">💾 保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="view-title">图 D：普通用户浏览界面 (只读权限)</h2>
+    <div class="app-container user-view">
+        <div class="sidebar">
+            <div class="logo-area"><span class="logo-icon"></span>焊接数据库系统</div>
+            <ul class="nav-menu">
+                <li class="nav-item active"><span class="nav-item-icon">📂</span>625试验数据</li>
+                <li class="nav-item"><span class="nav-item-icon">📂</span>701补充实验</li>
+                <li class="nav-item"><span class="nav-item-icon">📂</span>...</li>
+            </ul>
+            </div>
+        <div class="main-content">
+            <div class="header">
+                <div class="breadcrumb">首页 / 数据查询 / 625试验数据</div>
+                <div class="user-info">
+                    <span>User01</span>
+                    <div class="avatar" style="background: #87d068;"></div>
+                    <a href="#" style="color: #999; text-decoration: none; font-size: 12px;">[退出]</a>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="card">
+                    <div class="filter-bar">
+                        <div class="checkbox-group">
+                            <span style="margin-right:10px; font-weight:bold; color:#666;">特征分类:</span>
+                            <label><input type="checkbox" checked> 物性</label>
+                            <label><input type="checkbox" checked> 工艺</label>
+                            <label><input type="checkbox" checked> 状态</label>
+                            <label><input type="checkbox" checked> 性能</label>
+                        </div>
+                        </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>物性_基材</th>
+                                <th>工艺_功率</th>
+                                <th>状态_温度</th>
+                                <th>性能_强度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>01</td>
+                                <td>Al-SiC</td>
+                                <td>1600 W</td>
+                                <td>600 °C</td>
+                                <td>525 MPa</td>
+                            </tr>
+                            <tr>
+                                <td>02</td>
+                                <td>Al-Mg</td>
+                                <td>2000 W</td>
+                                <td>650 °C</td>
+                                <td>480 MPa</td>
+                            </tr>
+                            <tr>
+                                <td>03</td>
+                                <td>Al-SiC</td>
+                                <td>1800 W</td>
+                                <td>620 °C</td>
+                                <td>530 MPa</td>
+                            </tr>
+                            </tbody>
+                    </table>
+                    <div style="margin-top: 20px; text-align: right; color: #999;">
+                        &lt; 上一页 1 2 3 4 5 下一页 &gt;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
