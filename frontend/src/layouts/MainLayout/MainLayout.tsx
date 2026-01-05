@@ -11,6 +11,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   BarChartOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -165,6 +166,15 @@ const MainLayout: React.FC = () => {
         label: dataset.display_name,
         onClick: () => handleDatasetChange(dataset.id),
       })),
+    },
+    {
+      key: 'welding-visualization',
+      icon: <CameraOutlined />,
+      label: '激光焊接高速摄像过程',
+      onClick: () => {
+        setCurrentDatasetId(null);
+        navigate('/welding-visualization');
+      },
     },
   ].filter(Boolean) as MenuProps['items'];
 

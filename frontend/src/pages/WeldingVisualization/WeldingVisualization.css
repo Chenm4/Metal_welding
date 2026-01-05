@@ -1,0 +1,318 @@
+/**
+ * 焊接可视化页面样式
+ * 淡雅配色方案：蓝绿色系
+ */
+
+.welding-visualization {
+  height: 100%;
+  padding: 16px;
+  background: #f5f7fa;
+}
+
+/* 实验列表容器 */
+.experiment-list-container {
+  height: 100%;
+}
+
+.experiment-list-card {
+  height: calc(100vh - 100px);
+  overflow: hidden;
+}
+
+.experiment-list-card .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #5fa8d3 100%);
+  color: white;
+  border-bottom: none;  
+}
+
+.experiment-list-card .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+}
+
+/* 实验项样式 */
+.experiment-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8eaed;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.experiment-item:hover {
+  background: #f0f5ff;
+  transform: translateX(4px);
+}
+
+.experiment-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #5fa8d3 100%);
+  color: white;
+  border-left: 4px solid #1890ff;
+}
+
+.experiment-item.active .exp-name {
+  color: white;
+  font-weight: 600;
+}
+
+.experiment-item.active .exp-meta .ant-typography,
+.experiment-item.active .exp-stats .ant-typography {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.exp-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.exp-meta {
+  margin-bottom: 2px;
+}
+
+.exp-stats {
+  margin-top: 4px;
+}
+
+/* 内容区域 */
+.content-area {
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* 自定义滚动条 */
+.content-area::-webkit-scrollbar,
+.experiment-list-card .ant-card-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-area::-webkit-scrollbar-track,
+.experiment-list-card .ant-card-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.content-area::-webkit-scrollbar-thumb,
+.experiment-list-card .ant-card-body::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 4px;
+}
+
+.content-area::-webkit-scrollbar-thumb:hover,
+.experiment-list-card .ant-card-body::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* 实验头部卡片 */
+.exp-header-card {
+  background: linear-gradient(135deg, #667eea 0%, #5fa8d3 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.exp-header-card .ant-card-body {
+  padding: 16px 24px;
+}
+
+.exp-header-card h4,
+.exp-header-card .ant-typography {
+  color: white !important;
+  margin: 0;
+}
+
+/* 高速摄像卡片 */
+.high-speed-camera-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e8eaed;
+}
+
+.high-speed-camera-card .ant-card-head {
+  background: #fafbfc;
+  border-bottom: 2px solid #1890ff;
+}
+
+.image-container {
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.hs-image {
+  max-width: 100%;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 信号卡片 */
+.signal-card {
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #e8eaed;
+}
+
+.signal-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.signal-card .ant-card-head {
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  color: #333;
+  border-bottom: none;
+}
+
+.signal-card .ant-card-head-title {
+  color: #333;
+  font-weight: 600;
+}
+
+/* 视频卡片 */
+.video-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e8eaed;
+}
+
+.video-card .ant-card-head {
+  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+  color: #333;
+  border-bottom: none;
+}
+
+.video-card .ant-card-head-title {
+  color: #333;
+  font-weight: 600;
+}
+
+.video-card .ant-card-extra .ant-typography {
+  color: #333 !important;
+}
+
+video {
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #000;
+}
+
+/* 滑块样式优化 - 原生HTML slider */
+.frame-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e8eaed;
+  outline: none;
+  margin: 8px 0;
+}
+
+.frame-slider::-webkit-slider-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #5fa8d3 100%);
+}
+
+.frame-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #667eea;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.frame-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+}
+
+.frame-slider::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+.frame-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #5fa8d3 100%);
+}
+
+.frame-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #667eea;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.frame-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+}
+
+/* 保留Ant Design Slider样式兼容 */
+.ant-slider {
+  margin: 8px 0;
+}
+
+.ant-slider-rail {
+  background: #e8eaed;
+}
+
+.ant-slider-track {
+  background: linear-gradient(90deg, #667eea 0%, #5fa8d3 100%);
+}
+
+.ant-slider-handle {
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.ant-slider-handle:focus {
+  border-color: #5fa8d3;
+  box-shadow: 0 0 0 5px rgba(95, 168, 211, 0.12);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .experiment-list-container {
+    margin-bottom: 16px;
+  }
+  
+  .content-area {
+    max-height: none;
+  }
+}
+
+/* 加载动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.ant-spin {
+  animation: pulse 1.5s ease-in-out infinite;
+}

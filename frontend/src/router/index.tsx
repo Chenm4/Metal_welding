@@ -9,6 +9,7 @@ import MainLayout from '@/layouts/MainLayout/MainLayout';
 import DataManagement from '@/pages/DataManagement/DataManagement';
 import CoverageOverview from '@/pages/CoverageOverview/CoverageOverview';
 import UserManagement from '@/pages/UserManagement/UserManagement';
+import WeldingVisualization from '@/pages/WeldingVisualization/WeldingVisualization';
 
 /**
  * 路由配置
@@ -41,6 +42,10 @@ export const router = createBrowserRouter([
       {
         path: 'coverage',
         element: <CoverageOverview />,
+      },
+      {
+        path: 'welding-visualization',
+        element: <WeldingVisualization />,
       },
       {
         path: 'users',
