@@ -4,6 +4,18 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
+
+# 添加backend目录到Python路径
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
+
+# 导入logger
+from utils.logger import get_logger
+
+# 初始化logger
+logger = get_logger(__name__)
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei'] 
@@ -166,33 +178,6 @@ def plot_channel(ax, time_axis, data, label, color, plot_mode='line'):
 # ==========================================
 # 辅助绘图：绘制起止时间线
 # # ==========================================
-# def add_time_markers(ax, start_t, end_t, color='black', is_horizontal=False):
-#     """
-#     在图上绘制开始和结束的时间线
-    
-#     Args:
-#         ax: matplotlib axes对象
-#         start_t: 开始时间
-#         end_t: 结束时间
-#         color: 线条颜色
-#         is_horizontal: 是否为水平线（用于热力图）
-#     """
-#     if is_horizontal:
-#         # 水平线（用于热力图）
-#         ax.axhline(y=start_t, color=color, linestyle='--', linewidth=1.5, alpha=0.9)
-#         ax.text(ax.get_xlim()[0], start_t, f' Start: {start_t:.3f}s', 
-#                 color=color, fontsize=9, va='bottom', weight='bold')
-#         ax.axhline(y=end_t, color=color, linestyle='--', linewidth=1.5, alpha=0.9)
-#         ax.text(ax.get_xlim()[0], end_t, f' End: {end_t:.3f}s', 
-#                 color=color, fontsize=9, va='bottom', weight='bold')
-#     else:
-#         # 垂直线（用于折线图/散点图）
-#         y_min, y_max = ax.get_ylim()
-#         text_y_pos = y_max - (y_max - y_min) * 0.05
-#         ax.axvline(x=start_t, color=color, linestyle='--', linewidth=1.5, alpha=0.8, label='Start/End')
-#         ax.text(start_t, text_y_pos, f' Start\n {start_t:.3f}s', color=color, fontsize=9, ha='left', va='top', weight='bold')
-#         ax.axvline(x=end_t, color=color, linestyle='--', linewidth=1.5, alpha=0.8)
-#         ax.text(end_t, text_y_pos, f' End\n {end_t:.3f}s', color=color, fontsize=9, ha='left', va='top', weight='bold')
 def add_time_markers(ax, start_t, end_t, color='black', is_horizontal=False):
     """
     在图上绘制开始和结束的时间线（仅显示两端 25% 的长度，且线条更细）
@@ -222,17 +207,17 @@ def add_time_markers(ax, start_t, end_t, color='black', is_horizontal=False):
     else:
         # --- 垂直线逻辑 (用于折线图/散点图) ---
         # 计算文字高度位置
-        # text_y_pos = y_max - y_span * 0.05
+        text_y_pos = y_max - y_span * 0.05
         
-        # for t in [start_t, end_t]:
-        #     # 下段 (前 25%)
-        #     ax.plot([t, t], [y_min, y_min + y_span * 0.25], color=color, linestyle='--', linewidth=lw, alpha=0.8)
-        #     # 上段 (后 25%)
-        #     ax.plot([t, t], [y_max - y_span * 0.25, y_max], color=color, linestyle='--', linewidth=lw, alpha=0.8)
+        for t in [start_t, end_t]:
+            # 下段 (前 25%)
+            ax.plot([t, t], [y_min, y_min + y_span * 0.25], color=color, linestyle='--', linewidth=lw, alpha=0.8)
+            # 上段 (后 25%)
+            ax.plot([t, t], [y_max - y_span * 0.25, y_max], color=color, linestyle='--', linewidth=lw, alpha=0.8)
             
-        #     label_text = 'Start' if t == start_t else 'End'
-        #     ax.text(t, text_y_pos, f' {label_text}\n {t:.3f}s', 
-        #             color=color, fontsize=8, ha='left', va='top', weight='bold')
+            label_text = 'Start' if t == start_t else 'End'
+            ax.text(t, text_y_pos, f' {label_text}\n {t:.3f}s', 
+                    color=color, fontsize=8, ha='left', va='top', weight='bold')
         # 垂直线（用于折线图/散点图）
         y_min, y_max = ax.get_ylim()
         text_y_pos = y_max - (y_max - y_min) * 0.05
@@ -349,6 +334,7 @@ def plot_spectrometer_data(
         # 【修改】保存为 PNG 且 dpi=300
         save_name = os.path.splitext(original_name)[0] + ".png"
         plt.savefig(os.path.join(dir_map["Spectrogram"], save_name), format='png', dpi=300, bbox_inches='tight')
+        print(f"光谱图保存: {save_name}")
     
     plt.close(fig)
 
@@ -372,13 +358,20 @@ def process_photodiode_data(folder_path, master_data, plot_mode='line'):
     处理光强信号并更新 master_data
     :param plot_mode: 'line' (折线图，X轴拉长) 或 'scatter' (散点图)
     """
-    print("-" * 50)
-    print(f"开始处理光强信号: {folder_path} [模式: {plot_mode}]")
+    logger.info("-" * 50)
+    logger.info(f"开始处理光强信号: {folder_path} [模式: {plot_mode}]")
+    
+    # 检查路径是否存在
+    if not os.path.exists(folder_path):
+        logger.error(f"光强信号路径不存在: {folder_path}")
+        return
     
     files = glob.glob(os.path.join(folder_path, "*.txt"))
     if not files:
-        print("未找到txt文件。")
+        logger.warning(f"未找到txt文件: {folder_path}")
         return
+    
+    logger.info(f"找到 {len(files)} 个txt文件")
 
     # 创建分类文件夹
     dir_map = create_sub_dirs(folder_path, ["Visible", "Reflected", "Infrared", "Combined"])
@@ -388,7 +381,7 @@ def process_photodiode_data(folder_path, master_data, plot_mode='line'):
         # 【修改点】获取标准化 Key (小写)
         match_key = get_standard_key(original_name)
         
-        print(f"处理光强: {original_name}")
+        logger.info(f"处理光强: {original_name}")
         
         # 初始化 master_data
         if match_key not in master_data:
@@ -400,11 +393,10 @@ def process_photodiode_data(folder_path, master_data, plot_mode='line'):
                 first_line = f.readline()
                 try:
                     fs = float(first_line.split('\t')[-1])
-                    print(f"采样频率: {fs}")
+                    logger.info(f"采样频率: {fs}")
                 except:
                     fs = 20000 
-                    print(f"采样频率: {fs}")
-                    print(f"警告：{original_name} 采样频率读取失败，使用默认值20000。")
+                    logger.warning(f"采样频率读取失败，使用默认值20000: {original_name}")
             
             # 2. 读取数据 (GBK编码)
             df = pd.read_csv(file_path, skiprows=1, sep='\t', header=None, encoding='gbk')
@@ -414,7 +406,7 @@ def process_photodiode_data(folder_path, master_data, plot_mode='line'):
                 df = df.iloc[:, :3]
                 df.columns = ['Visible', 'Reflected', 'Infrared']
             else:
-                print(f"警告：{original_name} 列数不足，跳过。")
+                logger.warning(f"列数不足，跳过: {original_name}")
                 continue
             
             # 3. 生成时间轴
@@ -444,9 +436,10 @@ def process_photodiode_data(folder_path, master_data, plot_mode='line'):
                 df, time_axis, start_t, end_t, duration, total_seconds,
                 original_name, dir_map, plot_mode
             )
+            logger.info(f"光强文件处理完成: {original_name}")
                 
         except Exception as e:
-            print(f"处理光强文件 {original_name} 出错: {e}")
+            logger.error(f"处理光强文件 {original_name} 出错: {e}", exc_info=True)
 
 # ==========================================
 # 2. 光谱信号处理函数
@@ -455,13 +448,20 @@ def process_spectrometer_data(folder_path, master_data):
     """
     处理光谱信号并更新 master_data
     """
-    print("-" * 50)
-    print(f"开始处理光谱信号: {folder_path}")
+    logger.info("-" * 50)
+    logger.info(f"开始处理光谱信号: {folder_path}")
+    
+    # 检查路径是否存在
+    if not os.path.exists(folder_path):
+        logger.error(f"光谱信号路径不存在: {folder_path}")
+        return
     
     files = glob.glob(os.path.join(folder_path, "*.txt"))
     if not files:
-        print("未找到txt文件。")
+        logger.warning(f"未找到txt文件: {folder_path}")
         return
+    
+    logger.info(f"找到 {len(files)} 个txt文件")
 
     dir_map = create_sub_dirs(folder_path, ["Spectrogram"])
 
@@ -470,7 +470,7 @@ def process_spectrometer_data(folder_path, master_data):
         # 【修改点】获取标准化 Key (小写)
         match_key = get_standard_key(original_name)
         
-        print(f"处理光谱: {original_name}")
+        logger.info(f"处理光谱: {original_name}")
         
         if match_key not in master_data:
             master_data[match_key] = {"photodiode": None, "spectrometer": None, "comparison": None}
@@ -504,11 +504,7 @@ def process_spectrometer_data(folder_path, master_data):
             # 计算每一行的总光强
             total_intensity_per_row = np.sum(intensity_matrix, axis=1)
             start_idx, end_idx, start_t, end_t, duration = detect_welding_interval(total_intensity_per_row, fs_spec)
-            print("start_idx: ", start_idx)
-            print("end_idx: ", end_idx)
-            print("start_t: ", start_t)
-            print("end_t: ", end_t)
-            print("duration: ", duration)
+            logger.info(f"光谱检测结果 - start_idx: {start_idx}, end_idx: {end_idx}, start_t: {start_t:.4f}s, end_t: {end_t:.4f}s, duration: {duration:.4f}s")
             master_data[match_key]["spectrometer"] = {
                 "original_filename": original_name,
                 "fs": fs_spec,
@@ -526,9 +522,10 @@ def process_spectrometer_data(folder_path, master_data):
                 intensity_matrix, wavelengths, start_t, end_t, duration, total_seconds,
                 original_name, dir_map
             )
+            logger.info(f"光谱文件处理完成: {original_name}")
             
         except Exception as e:
-            print(f"处理光谱文件 {original_name} 出错: {e}")
+            logger.error(f"处理光谱文件 {original_name} 出错: {e}", exc_info=True)
 
 # ==========================================
 # 3. 对比计算函数
@@ -537,8 +534,8 @@ def calculate_comparison_metrics(master_data):
     """
     遍历 master_data，计算光强与光谱的误差
     """
-    print("-" * 50)
-    print("开始计算误差对照...")
+    logger.info("-" * 50)
+    logger.info("开始计算误差对照...")
     
     for file_name, data in master_data.items():
         pd_data = data.get("photodiode")
@@ -577,9 +574,15 @@ def calculate_comparison_metrics(master_data):
 # 主程序入口
 # ==========================================
 if __name__ == "__main__":
-    # 定义路径
-    path_photodiode = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据_三者均有\光强信号_第一列 可见光_第二列 反射光_第三列_红外光"
-    path_spectrometer = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据_三者均有\光谱信号"
+    logger.info("=" * 60)
+    logger.info("开始执行焊接数据分析程序")
+    logger.info("=" * 60)
+    
+    # 定义路径 - 使用存在的路径
+    path_photodiode = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据\3mm复合材料和铝合金焊接数据\光强信号_第一列 可见光_第二列 反射光_第三列_红外光"
+    path_spectrometer = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据\3mm复合材料和铝合金焊接数据\光谱信号"
+    # path_photodiode = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据_三者均有\光强信号_第一列 可见光_第二列 反射光_第三列_红外光"
+    # path_spectrometer = r"E:\value_code\Metal_welding\data\3mm复合材料和铝合金焊接数据_三者均有\光谱信号"
     
     # 主数据字典：Key = 文件名
     master_data = {}
@@ -588,13 +591,17 @@ if __name__ == "__main__":
     # 参数 plot_mode 可以选 'line' (折线, 拉长) 或 'scatter' (散点)
     # 建议先用 'line' 看看，如果不喜欢竖线，改成 'scatter'
     if os.path.exists(path_photodiode):
-        print(f"开始处理光强信号: {path_photodiode}")
+        logger.info(f"开始处理光强信号: {path_photodiode}")
         process_photodiode_data(path_photodiode, master_data, plot_mode='scatter')
+    else:
+        logger.error(f"光强信号路径不存在: {path_photodiode}")
     
     # 2. 处理光谱信号
     if os.path.exists(path_spectrometer):
-        print(f"开始处理光谱信号: {path_spectrometer}")
+        logger.info(f"开始处理光谱信号: {path_spectrometer}")
         process_spectrometer_data(path_spectrometer, master_data)
+    else:
+        logger.error(f"光谱信号路径不存在: {path_spectrometer}")
 
     # 3. 计算误差对照
     calculate_comparison_metrics(master_data)
@@ -606,7 +613,11 @@ if __name__ == "__main__":
     try:
         with open(json_save_path, 'w', encoding='utf-8') as f:
             json.dump(master_data, f, indent=4, ensure_ascii=False)
-        print(f"\n分析报告已生成: {json_save_path}")
-        print("Json包含: 光强分析、光谱分析、以及两者持续时间的误差对比。")
+        logger.info(f"分析报告已生成: {json_save_path}")
+        logger.info("Json包含: 光强分析、光谱分析、以及两者持续时间的误差对比。")
     except Exception as e:
-        print(f"保存JSON失败: {e}")
+        logger.error(f"保存JSON失败: {e}", exc_info=True)
+    
+    logger.info("=" * 60)
+    logger.info("程序执行完成")
+    logger.info("=" * 60)
