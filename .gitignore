@@ -5,3 +5,6 @@ __pycache__/
 docs
 data/3mm复合材料和铝合金焊接数据*
 logs
+backend/config/dataset_metadata.json
+.cursor/debug.log   
+.idea/
