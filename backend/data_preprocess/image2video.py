@@ -17,6 +17,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 import logging
 import warnings
+import subprocess
+import shutil
 
 # 抑制 OpenCV 的警告信息（特别是中文路径相关的警告）
 os.environ['OPENCV_LOG_LEVEL'] = 'ERROR'
@@ -34,22 +36,28 @@ class VideoConfig:
     """视频配置类"""
     def __init__(
         self,
-        codec: str = 'mp4v',
+        codec: str = 'XVID',
+        fallback_codecs: List[str] = ['MJPG', 'mp4v'],
         output_format: str = '.mp4',
-        fps_list: List[float] = [30, 60, 90, 120, 160, 240]
+        fps_list: List[float] = [30, 60, 90, 120, 160, 240],
+        use_ffmpeg_reencode: bool = True
     ):
         """
         初始化视频配置
         
         Args:
-            codec: 视频编码器（默认mp4v）
+            codec: OpenCV使用的临时编码器（默认XVID，用于生成临时视频）
+            fallback_codecs: 回退编码器列表，如果主编码器失败则依次尝试
             output_format: 输出视频格式（默认.mp4）
             fps_list: 要生成的视频帧率列表（默认[30, 60, 90, 120, 160, 240]）
                       原始采样频率4000Hz，用不同fps播放可以实现不同倍速的慢放效果
+            use_ffmpeg_reencode: 是否使用ffmpeg将临时视频重新编码为H.264（浏览器兼容）
         """
         self.codec = codec
+        self.fallback_codecs = fallback_codecs
         self.output_format = output_format
         self.fps_list = fps_list
+        self.use_ffmpeg_reencode = use_ffmpeg_reencode
 
 
 def get_image_files(folder_path: Path) -> List[Path]:
@@ -145,6 +153,62 @@ def get_image_size(image_path: Path) -> Optional[tuple]:
     return None
 
 
+def reencode_with_ffmpeg(input_path: Path, output_path: Path, fps: float) -> bool:
+    """
+    使用ffmpeg将视频重新编码为H.264格式（浏览器兼容）
+    
+    Args:
+        input_path: 输入视频路径
+        output_path: 输出视频路径
+        fps: 视频帧率
+        
+    Returns:
+        是否成功
+    """
+    try:
+        # 检查ffmpeg是否可用
+        if not shutil.which('ffmpeg'):
+            logger.warning("ffmpeg未安装或不在PATH中，跳过重新编码步骤")
+            return False
+        
+        # 使用ffmpeg重新编码为H.264
+        # -c:v libx264: 使用H.264视频编码器
+        # -preset medium: 编码速度与质量的平衡
+        # -crf 23: 恒定质量因子（18-28是合理范围，23是默认值）
+        # -r fps: 设置帧率
+        # -movflags +faststart: 优化web播放（将元数据移到文件开头）
+        # -pix_fmt yuv420p: 确保兼容性
+        cmd = [
+            'ffmpeg',
+            '-i', str(input_path),
+            '-c:v', 'libx264',
+            '-preset', 'medium',
+            '-crf', '23',
+            '-r', str(int(fps)),
+            '-pix_fmt', 'yuv420p',
+            '-movflags', '+faststart',
+            '-y',  # 覆盖输出文件
+            str(output_path)
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            logger.error(f"ffmpeg重新编码失败 {input_path.name}: {result.stderr}")
+            return False
+        
+        logger.debug(f"ffmpeg重新编码成功: {output_path.name}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"ffmpeg重新编码时出错 {input_path.name}: {e}")
+        return False
+
+
 def create_video_from_images(
     image_files: List[Path],
     output_path: Path,
@@ -182,18 +246,44 @@ def create_video_from_images(
     # 确保输出目录存在
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # 创建视频写入器
-    # 注意：如果输出路径包含中文，VideoWriter 可能也有问题
-    # 如果遇到问题，可以考虑使用临时文件然后重命名
-    fourcc = cv2.VideoWriter_fourcc(*config.codec)
+    # 如果使用ffmpeg重新编码，先创建临时视频文件
+    if config.use_ffmpeg_reencode:
+        temp_output = output_path.with_suffix('.tmp.avi')
+    else:
+        temp_output = output_path
     
-    # 尝试使用绝对路径的字符串形式
-    output_path_str = str(output_path.resolve())
-    out = cv2.VideoWriter(output_path_str, fourcc, fps, (width, height))
+    # 尝试多个编码器，直到找到一个可用的
+    codecs_to_try = [config.codec] + config.fallback_codecs
+    out = None
+    used_codec = None
     
-    if not out.isOpened():
-        logger.error(f"无法创建视频文件: {output_path}")
-        logger.error(f"  尝试的路径: {output_path_str}")
+    temp_output_str = str(temp_output.resolve())
+    
+    for codec in codecs_to_try:
+        try:
+            fourcc = cv2.VideoWriter_fourcc(*codec)
+            out = cv2.VideoWriter(temp_output_str, fourcc, fps, (width, height))
+            
+            if out.isOpened():
+                used_codec = codec
+                if codec != config.codec:
+                    logger.debug(f"使用回退编码器 {codec}: {temp_output.name}")
+                break
+            else:
+                if out is not None:
+                    out.release()
+                out = None
+        except Exception as e:
+            logger.debug(f"编码器 {codec} 初始化失败: {e}")
+            if out is not None:
+                out.release()
+                out = None
+            continue
+    
+    if out is None or not out.isOpened():
+        logger.error(f"无法创建视频文件: {temp_output}")
+        logger.error(f"  尝试的编码器: {codecs_to_try}")
+        logger.error(f"  路径: {temp_output_str}")
         return False
     
     try:
@@ -229,15 +319,41 @@ def create_video_from_images(
             return False
         
         if failed_frames > 0:
-            logger.warning(f"视频创建完成但有 {failed_frames} 张图片处理失败: {output_path.name}")
+            logger.info(f"✓ 临时视频创建完成 [{used_codec}]: {temp_output.name} ({successful_frames}帧, 失败{failed_frames}张)")
+        else:
+            logger.info(f"✓ 临时视频创建完成 [{used_codec}]: {temp_output.name} ({successful_frames}帧)")
+        
+        # 如果使用ffmpeg重新编码，将临时视频转换为H.264
+        if config.use_ffmpeg_reencode:
+            logger.info(f"正在使用ffmpeg重新编码为H.264: {output_path.name}")
+            if reencode_with_ffmpeg(temp_output, output_path, fps):
+                # 删除临时文件
+                try:
+                    temp_output.unlink()
+                except Exception as e:
+                    logger.warning(f"无法删除临时文件 {temp_output.name}: {e}")
+                logger.info(f"✓ 视频重新编码完成: {output_path.name}")
+                return True
+            else:
+                # ffmpeg失败，保留临时文件作为输出
+                logger.warning(f"ffmpeg重新编码失败，保留临时视频: {temp_output.name}")
+                if temp_output.exists() and temp_output != output_path:
+                    try:
+                        if output_path.exists():
+                            output_path.unlink()
+                        temp_output.rename(output_path)
+                    except Exception as e:
+                        logger.error(f"无法重命名临时文件: {e}")
+                return True
         
         return True
         
     except Exception as e:
-        logger.error(f"创建视频时出错 {output_path}: {e}")
+        logger.error(f"创建视频时出错 {temp_output}: {e}")
         return False
     finally:
-        out.release()
+        if out is not None:
+            out.release()
 
 
 def process_folder(
@@ -389,9 +505,11 @@ def main():
     # 原始采样频率4000Hz，用不同fps播放可以实现不同倍速的慢放效果
     # 例如：30fps播放 = 4000/30 = 133.33倍慢速，240fps播放 = 4000/240 = 16.67倍慢速
     config = VideoConfig(
-        codec='mp4v',  # 视频编码器
+        codec='XVID',  # OpenCV临时编码器（XVID兼容性好）
+        fallback_codecs=['MJPG', 'mp4v'],  # 回退编码器
         output_format='.mp4',
-        fps_list=[30, 60, 90, 120, 160, 240]  # 生成不同fps的视频
+        fps_list=[30, 60, 90, 120, 160, 240],  # 生成不同fps的视频
+        use_ffmpeg_reencode=True  # 使用ffmpeg重新编码为H.264（浏览器兼容）
     )
     
     # 并行处理所有文件夹
