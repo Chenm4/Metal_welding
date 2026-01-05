@@ -56,6 +56,16 @@ logger.info("正在挂载静态文件目录...")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 logger.info("✓ 静态文件目录挂载成功: /static")
 
+# 挂载数据文件目录（焊接数据）
+import os
+from pathlib import Path
+data_dir = Path(__file__).parent.parent / "data"
+if data_dir.exists():
+    app.mount("/data", StaticFiles(directory=str(data_dir)), name="data")
+    logger.info(f"✓ 数据文件目录挂载成功: /data -> {data_dir}")
+else:
+    logger.warning(f"⚠ 数据文件目录不存在: {data_dir}")
+
 # ==================== 中间件配置 ====================
 # 1. 请求日志中间件
 @app.middleware("http")
