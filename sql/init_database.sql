@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS sys_users (
     id INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     password VARCHAR(100) NOT NULL COMMENT '密码（明文）',
-    role ENUM('admin', 'viewer') NOT NULL DEFAULT 'viewer' COMMENT '角色：admin-管理员, viewer-查看者',
+    role ENUM('root', 'admin', 'user') NOT NULL DEFAULT 'user' COMMENT '角色：root-超级管理员, admin-管理员, user-普通用户',
     status ENUM('active', 'disabled') NOT NULL DEFAULT 'active' COMMENT '状态：active-激活, disabled-禁用',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
