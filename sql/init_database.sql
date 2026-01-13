@@ -27,8 +27,9 @@ CREATE TABLE IF NOT EXISTS sys_users (
 
 -- 插入默认用户
 INSERT INTO sys_users (username, password, role, created_by) VALUES
+('root', '123456', 'root', 'system'),
 ('admin', '123456', 'admin', 'system'),
-('viewer', '123456', 'viewer', 'admin')
+('user', '123456', 'user', 'system')
 ON DUPLICATE KEY UPDATE username=username;
 
 -- =====================================================
